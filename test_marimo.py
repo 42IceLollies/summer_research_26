@@ -13,8 +13,24 @@ def _():
     import matplotlib.pyplot as plt
     import os
     import numpy as np
+    from skimage.filters import threshold_otsu
+    from skimage.segmentation import clear_border
+    from skimage.morphology import closing, footprint_rectangle
+    from skimage.color import label2rgb
+    import matplotlib.patches as mpatches
 
-    return io, np, plt, skimage
+    return (
+        clear_border,
+        closing,
+        footprint_rectangle,
+        io,
+        measure,
+        mpatches,
+        np,
+        plt,
+        skimage,
+        threshold_otsu,
+    )
 
 
 @app.cell
@@ -37,6 +53,14 @@ def _(test_img):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ***
+    """)
+    return
+
+
 @app.cell
 def _(plt, skimage, test_img):
     # crop to black section
@@ -45,9 +69,6 @@ def _(plt, skimage, test_img):
 
     fig, ax = plt.subplots()
     ax.imshow(black_n_white, cmap = "gray")
-
-    # for contour in contours:
-    #     ax.plot(contour[:,1], contour[:,0], linewidth = 2)
 
 
     plt.show()
@@ -69,7 +90,6 @@ def _(black_n_white, np):
 
     print(f"Percentage when cropped: {brightness_percent(cropped, 0.75)}%")
 
-
     return
 
 
@@ -85,12 +105,91 @@ def _(black_n_white, np, plt):
 @app.cell
 def _():
     # compare to a couple blurrier versions, quantify the amount of distortion
+    return
 
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ***
+    """)
     return
 
 
 @app.cell
-def _():
+def _(
+    clear_border,
+    closing,
+    footprint_rectangle,
+    measure,
+    mpatches,
+    threshold_otsu,
+):
+    # Returns a copy of an image, cropped to a relevant region
+    def crop_to_reg(region, img):
+        minx, miny, maxx, maxy = region.bbox
+        return img[minx:maxx, miny:maxy]
+
+    # returns label regions from a  black and white image
+    def label_img(img, ftprnt):
+        threshhold = threshold_otsu(img)
+        bw = closing(img>threshhold, footprint_rectangle((ftprnt, ftprnt)))
+        cleared = clear_border(bw)
+        labels = measure.label(cleared)
+        regions = measure.regionprops(labels)
+        return regions
+
+    # returns a list of significant regions
+    def significant_reg(regions, size):
+        regs = []
+        for region in regions:
+            if region.area>=size:
+                regs.append(region)
+
+        return regs
+
+    # draws borders on significant regions
+    def borders(sig_regions, ax):
+        for region in sig_regions:
+            minx, miny, maxx, maxy = region.bbox
+            rect = mpatches.Rectangle(
+                (miny, minx), 
+                maxy-miny,
+                maxx-minx,
+                fill = False,
+                edgecolor = "red",
+                linewidth = 2,
+            )
+            ax.add_patch(rect)
+
+
+    return borders, crop_to_reg, label_img, significant_reg
+
+
+@app.cell
+def _(black_n_white, borders, crop_to_reg, label_img, plt, significant_reg):
+    # An attempt at labelling parts of the image
+    # If only I had the data to attempt to classify it as well
+
+    regions = label_img(black_n_white, 5)
+    fig_1, ax_1 = plt.subplots(1,2, figsize = (10, 6))
+    ax_1[0].imshow(black_n_white, cmap = "gray")
+    sig_regions = significant_reg(regions, 10000)
+    borders(sig_regions, ax_1[0])
+    ax_1[1].imshow(crop_to_reg(sig_regions[0], black_n_white), cmap = "gray")
+
+    
+    plt.show()
+
+
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    From here, should be able to run the cropped areas of interest through an ML classification algorithm. Can save the classifications with the image, to have data on shunt numbers, other defect numbers and such. This is mainly for identifying defect type with ML, which I'm not sure if its worth it, given I'm still not sure what I'm doing exactly, but... It's cool at least!
+    """)
     return
 
 
