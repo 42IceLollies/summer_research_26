@@ -18,8 +18,11 @@ def _():
     from skimage.morphology import closing, footprint_rectangle
     from skimage.color import label2rgb
     import matplotlib.patches as mpatches
+    from PIL import Image, ImageStat
 
     return (
+        Image,
+        ImageStat,
         clear_border,
         closing,
         footprint_rectangle,
@@ -89,7 +92,6 @@ def _(black_n_white, np):
     cropped = black_n_white[600:3500, 1100:5000]
 
     print(f"Percentage when cropped: {brightness_percent(cropped, 0.75)}%")
-
     return
 
 
@@ -125,9 +127,12 @@ def _(
     mpatches,
     threshold_otsu,
 ):
-    # Returns a copy of an image, cropped to a relevant region
+    # Returns a copy of an image, cropped to a relevant region or list of points
     def crop_to_reg(region, img):
-        minx, miny, maxx, maxy = region.bbox
+        if type(region) == list:
+            minx, miny, maxx, maxy = region
+        else:
+            minx, miny, maxx, maxy = region.bbox
         return img[minx:maxx, miny:maxy]
 
     # returns label regions from a  black and white image
@@ -178,9 +183,8 @@ def _(black_n_white, borders, crop_to_reg, label_img, plt, significant_reg):
     borders(sig_regions, ax_1[0])
     ax_1[1].imshow(crop_to_reg(sig_regions[0], black_n_white), cmap = "gray")
 
-    
-    plt.show()
 
+    plt.show()
 
     return
 
@@ -189,6 +193,84 @@ def _(black_n_white, borders, crop_to_reg, label_img, plt, significant_reg):
 def _(mo):
     mo.md(r"""
     From here, should be able to run the cropped areas of interest through an ML classification algorithm. Can save the classifications with the image, to have data on shunt numbers, other defect numbers and such. This is mainly for identifying defect type with ML, which I'm not sure if its worth it, given I'm still not sure what I'm doing exactly, but... It's cool at least!
+
+    ***
+    """)
+    return
+
+
+@app.cell
+def _(Image, ImageStat, black_n_white):
+    # Function to calculate average brightness of an image 
+    # For use in comparing optical patterns, 
+
+    # this one uses PIL Images
+    def avg_brightness_PIL(img_path):
+        img = Image.open(img_path)
+        img = img.convert("L")
+        return ImageStat.Stat(img).mean[0]/256
+
+    # This one is just the skimage np array image
+    def avg_brightness(img):
+        return sum([sum(i) for i in img])/ (len(img)*len(img[0]))
+
+
+    print(avg_brightness_PIL("test_img.JPG"))
+    print(avg_brightness(black_n_white))
+
+    return (avg_brightness,)
+
+
+@app.cell
+def _(avg_brightness, black_n_white, crop_to_reg, np, plt):
+    # Taking two points on the image and calculating their average brightness
+
+
+    # takes in the coordinates of the top left corner and width of box one and box two -> returns two cropped images of 
+    def select_regions(point1, width1, point2, width2, img):
+        return (crop_to_reg([point1[0], point1[1], point1[0]+width1, point1[1]+width1], img), crop_to_reg([point2[0], point2[1], point2[0]+width2, point2[1]+width2], img))
+
+    # calculates the difference in brightness between two given regions (cropped np array images) - 0 is no contrast, 1 is max contrast
+    def calc_contrast(regs):
+        return np.abs(avg_brightness(regs[0]) - avg_brightness(regs[1]))
+
+    # adds correct scaling to heatmap of image so that it will display in the correct
+    def scale_heatmap(reg):
+        reg[0][0] = 1
+        reg[0][1] = 0
+        return reg
+
+    # displays two regions side by side, third argument controls whether the displayed images are scaled to actual darkness or not
+    def display_regs(regs, corrected):
+        fig_2, ax_2 = plt.subplots(1,2)
+        # This I think needs to be a dereferenced pointer but I don't have the energy rn
+        reg1, reg2 = regs
+        if corrected:
+            reg1 = scale_heatmap(regs[0])
+            reg2 = scale_heatmap(regs[1])
+        ax_2[0].imshow(reg1, cmap = "gray")
+        ax_2[1].imshow(reg2, cmap = "gray")
+        plt.show()
+
+
+    regs = select_regions((0,0), 1000, (2000,2000), 1000, black_n_white)
+    display_regs(regs, False)
+    print(calc_contrast(regs))
+
+
+    # transmittance can build off of this, but it's just the image with the mask divided by the image with the light
+    # can just use an all white square to test it with the image here
+
+
+
+    
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+ 
     """)
     return
 
