@@ -41,8 +41,9 @@ def _(io):
     # reading in my own image file
 
     test_img = io.imread("test_img.JPG")
+    raw_test = io.imread("EOS_R100\\IMG_0004.CR3")
 
-    io.imshow(test_img)
+    io.imshow(raw_test)
     io.show()
     return (test_img,)
 
@@ -185,7 +186,6 @@ def _(black_n_white, borders, crop_to_reg, label_img, plt, significant_reg):
 
 
     plt.show()
-
     return
 
 
@@ -217,7 +217,6 @@ def _(Image, ImageStat, black_n_white):
 
     print(avg_brightness_PIL("test_img.JPG"))
     print(avg_brightness(black_n_white))
-
     return (avg_brightness,)
 
 
@@ -227,12 +226,13 @@ def _(avg_brightness, black_n_white, crop_to_reg, np, plt):
 
 
     # takes in the coordinates of the top left corner and width of box one and box two -> returns two cropped images of 
-    def select_regions(point1, width1, point2, width2, img):
-        return (crop_to_reg([point1[0], point1[1], point1[0]+width1, point1[1]+width1], img), crop_to_reg([point2[0], point2[1], point2[0]+width2, point2[1]+width2], img))
+    def select_regions(point1, width1, img1, point2, width2, img2):
+        return (crop_to_reg([point1[0], point1[1], point1[0]+width1, point1[1]+width1], img1), crop_to_reg([point2[0], point2[1], point2[0]+width2, point2[1]+width2], img2))
 
     # calculates the difference in brightness between two given regions (cropped np array images) - 0 is no contrast, 1 is max contrast
     def calc_contrast(regs):
         return np.abs(avg_brightness(regs[0]) - avg_brightness(regs[1]))
+
 
     # adds correct scaling to heatmap of image so that it will display in the correct
     def scale_heatmap(reg):
@@ -253,8 +253,8 @@ def _(avg_brightness, black_n_white, crop_to_reg, np, plt):
         plt.show()
 
 
-    regs = select_regions((0,0), 1000, (2000,2000), 1000, black_n_white)
-    display_regs(regs, False)
+    regs = select_regions((0,0), 1000, black_n_white, (2000,2000), 1000, black_n_white)
+    display_regs(regs, True)
     print(calc_contrast(regs))
 
 
@@ -263,7 +263,26 @@ def _(avg_brightness, black_n_white, crop_to_reg, np, plt):
 
 
 
-    
+
+    return display_regs, select_regions
+
+
+@app.cell
+def _(avg_brightness, black_n_white, display_regs, np, select_regions):
+    # calculates the amount of light transmitted through a device based on the brightness of the light source and the brightness shining through the 
+    # sample (crop to relevant areas)
+    # REGIONS [0] SHOULD BE THE LIGHT SOURCE, AND [1] SHOULD BE THE MASKED IMAGE
+    import select
+    def calc_transmittance(regs):
+        return avg_brightness(regs[1]) / avg_brightness(regs[0])
+
+
+    light_source = np.ones((4000,6000))
+
+    regs_t = select_regions((0,0), 100, light_source, (2500,100), 100, black_n_white )
+    display_regs(regs_t, True)
+
+    print(calc_transmittance((regs_t[0], regs_t[1])))
     return
 
 
