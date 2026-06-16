@@ -1,4 +1,4 @@
-import parse_cr3 as parse
+import lcLevy.parse_cr3 as parse
 
 class Img():
     
@@ -9,6 +9,3 @@ class Img():
         self.big_crx = returned["big_crx"]
         self.small_crx = returned["small_crx"]
 
-
-img = Img("EOS_R100/IMG_0004.CR3")
-print(img.cr3)

@@ -1,7 +1,7 @@
 
 from struct import Struct
 from collections import namedtuple, OrderedDict
-from CRaw3.TiffIfd import TiffIfd
+from lcLevy.CRaw3.TiffIfd import TiffIfd
 from binascii import hexlify
 
 class Ctmd:

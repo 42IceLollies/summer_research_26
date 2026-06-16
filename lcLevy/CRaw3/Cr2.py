@@ -2,8 +2,8 @@
 parses CR2 files using TiffIfd and Jpeg classes
 '''
 
-from CRaw3.TiffIfd import TiffIfd
-from CRaw3.Jpeg import Jpeg
+from lcLevy.CRaw3.TiffIfd import TiffIfd
+from lcLevy.CRaw3.Jpeg import Jpeg
 
 class Cr2:
   def __init__(self, data, length, name):

@@ -26,11 +26,11 @@ def getLongLE(d, a):
 def getLongLongBE(d, a):
  return unpack('>Q',(d)[a:a+8])[0]
 
-from CRaw3.TiffIfd import TiffIfd
-from CRaw3.Jpeg import Jpeg      
-from CRaw3.Cr2 import Cr2      
-from CRaw3.Crx import Crx
-from CRaw3.Ctmd import Ctmd      
+from lcLevy.CRaw3.TiffIfd import TiffIfd
+from lcLevy.CRaw3.Jpeg import Jpeg      
+from lcLevy.CRaw3.Cr2 import Cr2      
+from lcLevy.CRaw3.Crx import Crx
+from lcLevy.CRaw3.Ctmd import Ctmd      
    
 
 def getIfd(name, details): # details is dict with 'picture', 'type', 'tag'

@@ -1,13 +1,12 @@
 import marimo
 
-__generated_with = "0.23.6"
+__generated_with = "0.23.9"
 app = marimo.App()
 
 
 @app.cell
 def _():
-    import h5py
-    import skimage
+    # import h5py
     from skimage import io
     from skimage import measure
     import matplotlib.pyplot as plt
@@ -31,7 +30,6 @@ def _():
         mpatches,
         np,
         plt,
-        skimage,
         threshold_otsu,
     )
 
@@ -262,8 +260,6 @@ def _(avg_brightness, black_n_white, crop_to_reg, np, plt):
     # can just use an all white square to test it with the image here
 
 
-
-
     return display_regs, select_regions
 
 
@@ -291,6 +287,13 @@ def _(mo):
     mo.md(r"""
  
     """)
+    return
+
+
+@app.cell
+def _(io):
+    tif = io.imread("EOS_R100/IMG_0004.tif")
+    io.imshow(tif)
     return
 
 
