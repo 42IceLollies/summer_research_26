@@ -104,8 +104,9 @@ def _(black_n_white, np, plt):
 
 
 @app.cell
-def _():
+def _(plt):
     # compare to a couple blurrier versions, quantify the amount of distortion
+    print(max(plt.hist([0,0,0,2,2,2,2,2,2,5,5])[0]))
     return
 
 
@@ -133,6 +134,9 @@ def _(
         else:
             minx, miny, maxx, maxy = region.bbox
         return img[minx:maxx, miny:maxy]
+
+
+    # ================== I skipped all of these ones, should figure out which will be needed =======================
 
     # returns label regions from a  black and white image
     def label_img(img, ftprnt):
@@ -258,8 +262,6 @@ def _(avg_brightness, black_n_white, crop_to_reg, np, plt):
 
     # transmittance can build off of this, but it's just the image with the mask divided by the image with the light
     # can just use an all white square to test it with the image here
-
-
     return display_regs, select_regions
 
 
