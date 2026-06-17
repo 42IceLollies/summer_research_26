@@ -3,8 +3,7 @@ from skimage import measure
 from skimage.filters import threshold_otsu
 from skimage.segmentation import clear_border
 from skimage.morphology import closing, footprint_rectangle
-from skimage.color import label2rgb, rgb2gray
-import os
+from skimage.color import rgb2gray
 import numpy as np
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -111,6 +110,20 @@ class Image():
         (float): the decimal value of difference in average brightness between the two images
         """
         return np.abs(self.array.avg_brightness() - other.avg_brightness())
+    
+    def calc_transmittance(self, light_src:Image)-> float:
+        """Based on an image of a light source, and an image of object on top of a light source, returns how much light is transmitted through the object.
+         
+        Args: 
+        light_src (Image): Image object of the light source without the hazy object on top
+          
+        Returns: 
+         (float): fraction of light which is transmitted
+        
+         """
+        trans = self.avg_brightness()/light_src.avg_brightness()
+        print(f"Fraction of light transmitted: {trans}")
+        return trans
 
     
     def crop(self, region) -> Image:
@@ -149,6 +162,48 @@ class Image():
         if height == -1:
             height = width
         return self.array.crop(point[0], point[1], point[0]+width, point[1]+height)
+
+
+    def label_img(self, ftprnt: int, size: int = -1)-> None:
+        """Uses skimage label function to label the significant parts of the image.
+        
+        Args: 
+            ftprnt (int): size of footprint square
+            size (int) (optional): if specified, only regions with area larger than specified will be labeled. 
+        
+        Returns:
+            None
+            """
+        
+        threshold = threshold_otsu(self.bwarray)
+        bw = closing(self.bwarray>threshold, footprint_rectangle((ftprnt, ftprnt)))
+        cleared = clear_border(bw)
+        labels = measure.label(cleared)
+        regions = measure.regionprops(labels)
+
+        if size>=0:
+            sig_regions = []
+            for region in regions:
+                if region.area>=size:
+                    sig_regions.append(region)
+            regions = sig_regions
+
+        fig, ax = plt.subplots()
+        ax.imshow(self.array)
+        
+        for region in regions:
+            minx, miny, maxx, maxy = region.bbox
+            rect = mpatches.Rectangle(
+                (miny, minx),
+                maxy-miny,
+                maxx-minx,
+                fill = False,
+                edgecolor = "red", 
+                linewidth =2,
+            )
+            ax.add_patch(rect)
+        plt.show()
+
 
 
     
