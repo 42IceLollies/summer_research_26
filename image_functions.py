@@ -161,7 +161,7 @@ class Image():
         """
         if height == -1:
             height = width
-        return self.array.crop(point[0], point[1], point[0]+width, point[1]+height)
+        return self.crop([point[0], point[1], point[0]+width, point[1]+height])
 
 
     def label_img(self, ftprnt: int, size: int = -1)-> None:
