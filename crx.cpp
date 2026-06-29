@@ -227,10 +227,13 @@ static inline void crxFillBuffer(CrxBitstream *bitStrm)
 
 libraw_inline int crxBitstreamGetZeros(CrxBitstream *bitStrm)
 {
+  // what is the benefit of getting zeroes?
   uint32_t nonZeroBit = 0;
   uint64_t nextData = 0;
   int32_t result = 0;
 
+// bitstrm is an object, -> references its variables
+// if there is bit data
   if (bitStrm->bitData)
   {
     _BitScanReverse((DWORD *)&nonZeroBit, (DWORD)bitStrm->bitData);
@@ -274,6 +277,7 @@ libraw_inline int crxBitstreamGetZeros(CrxBitstream *bitStrm)
   return result;
 }
 
+// reading in new bits 
 libraw_inline uint32_t crxBitstreamGetBits(CrxBitstream *bitStrm, int bits)
 {
   int bitsLeft = bitStrm->bitsLeft;

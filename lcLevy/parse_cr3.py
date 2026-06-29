@@ -297,13 +297,13 @@ parser.add_option("-q", "--quiet", action="store_true", dest="quiet", help="do n
 parser.add_option("-c", "--ctmd", action="store_true", dest="display_ctmd", help="display CTMD", default=False)
 parser.add_option("-p", "--picture", type="int", dest="pic_num", help="specific picture, default is 0", default=0)
 
-def parse_image(dat):
+def parse_image(dat, img_num):
   # (options, args) = ("-v", [dat]) #parser.parse_args()
   args = [dat]
   options = {
     "verbose": False,
     "quiet": True,
-    "extract" : False,
+    "extract" : True,
     "model" : False,
     "display_ctmd": False,
   }
@@ -327,10 +327,10 @@ def parse_image(dat):
     cr2 = Cr2( data, filesize, 'cr2' )
     if options["verbose"]>1:
       cr2.display()
-    if options["extract"]:
-      cr2.extract_pic0('ifd0.jpg')
-      cr2.extract_pic1('ifd1.jpg')
-      cr2.extract_pic2('ifd2.ppm')
+    # if options["extract"]:
+      # cr2.extract_pic0('ifd0.jpg')
+      # cr2.extract_pic1('ifd1.jpg')
+      # cr2.extract_pic2('ifd2.ppm')
     print('modelId = 0x%x' % cr2.get_model_id() ) 
     print('modelName = %s' % cr2.get_model_name() ) 
     cr2.get_lossless_info()
@@ -352,30 +352,31 @@ def parse_image(dat):
     if options["verbose"]>0:
       print('CR3')
     if options["extract"]:
-      trak_list = [ 'trak1' ,'trak2', 'trak3', 'trak5' ]
-      trak_msg = [ 'jpg%02d.jpg', 'sd%02d_crx.bin', 'hd%02d_crx.bin', 'dp%02d_crx.bin' ] 
+      trak_list = [ 'trak1' ]#,'trak2', 'trak3', 'trak5' ]
+      trak_msg = [ f'jpg{img_num}.jpg']#, 'sd%02d_crx.bin', 'hd%02d_crx.bin', 'dp%02d_crx.bin' ] 
       for trak, msg in zip(trak_list, trak_msg):
         if trak in cr3:
           for offset, size, index in zip( cr3[trak][b'co64'], cr3[trak][b'stsz'], range( len(cr3[trak][b'co64']) ) ):
-            filename = msg % (index)
+            filename = msg# % (index)
             if options["verbose"]>0:
               print('extracting %s (%s) %dx%d from mdat... offset=0x%x, size=0x%x (ends at 0x%x)' % ( filename, trak, cr3[trak][b'CRAW'][0], cr3[trak][b'CRAW'][1], offset, size, offset+size) )
             picture = data[ offset: offset+size ] 
-            f = open( filename,'wb' )
+            f = open( f"EOS_R100_JPG/{filename}",'wb' )
+            
             f.write( picture )
             f.close()
-      if b'THMB' in cr3:      
-        offset = cr3[b'THMB'][0]
-        jpegSize = cr3[b'THMB'][1].size
-        f = open('thmb.jpg','wb')
-        f.write( data[ offset+S_THMB.size: offset+S_THMB.size+jpegSize ])
-        f.close()  
-      if b'PRVW' in cr3:
-        offset = cr3[b'PRVW'][0]
-        jpegSize = cr3[b'PRVW'][1].size
-        f = open('prvw.jpg','wb')
-        f.write( data[ offset+S_PRVW.size: offset+S_PRVW.size+jpegSize ] )
-        f.close()
+      # if b'THMB' in cr3:      
+      #   offset = cr3[b'THMB'][0]
+      #   jpegSize = cr3[b'THMB'][1].size
+      #   f = open('thmb.jpg','wb')
+      #   f.write( data[ offset+S_THMB.size: offset+S_THMB.size+jpegSize ])
+      #   f.close()  
+      # if b'PRVW' in cr3:
+      #   offset = cr3[b'PRVW'][0]
+      #   jpegSize = cr3[b'PRVW'][1].size
+      #   f = open('prvw.jpg','wb')
+      #   f.write( data[ offset+S_PRVW.size: offset+S_PRVW.size+jpegSize ] )
+        # f.close()
 
     cr3[b'CTMD'].offsets = cr3['trak4'][b'co64']
     cr3[b'CTMD'].sizes = cr3['trak4'][b'stsz']
