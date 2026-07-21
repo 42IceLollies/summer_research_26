@@ -449,9 +449,9 @@ def find_range(i, j, l, h):
     max_j: (int) index of patches in right col of influence
     """
     min_i = i-interpol_range if i-interpol_range>0 else 0
-    max_i = i+interpol_range if i+interpol_range<l-1 else l-1
+    max_i = i+interpol_range+1 if i+interpol_range+1<l else l
     min_j = j-interpol_range if j-interpol_range>0 else 0
-    max_j = j+interpol_range if j+interpol_range<h-1 else h-1
+    max_j = j+interpol_range+1 if j+interpol_range+1<h else h
     return min_i, max_i, min_j, max_j
 
 
@@ -463,7 +463,7 @@ data = {}
 a, A_hat, uncs = find_dir_and_mag(image)
 # a, A_hat = interpolate(a, A_hat, uncs)
 
-data["EOS_R100_JPG/jpg0006.jpg"] = [a, A_hat, uncs]
+data["EOS_R100_JPG/jpg0006.jpg"] = [a.tolist(), A_hat.tolist(), uncs.tolist()]
 
 
 with open("haze_data.json", "w") as f:
